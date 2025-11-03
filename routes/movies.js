@@ -1,0 +1,93 @@
+const express = require("express");
+const List = require("../models/listModel"); // import List
+
+const router = express.Router();
+
+// Search movies by title (case-insensitive, across all lists)
+router.get("/movies/search/:query", async (req, res) => {
+  try {
+    const query = req.params.query;
+
+    // Find all lists that have at least one movie matching the query
+    const lists = await List.find({
+      "movies.title": { $regex: query, $options: "i" } // i = case-insensitive
+    });
+
+    // Collect all matching movies
+    const matchingMovies = [];
+    lists.forEach(list => {
+      list.movies.forEach(movie => {
+        if (movie.title.toLowerCase().includes(query.toLowerCase())) {
+          matchingMovies.push({
+            list: list.name,
+            title: movie.title,
+            description: movie.description,
+            image: movie.image
+          });
+        }
+      });
+    });
+
+    if (matchingMovies.length === 0)
+      return res.status(404).json({ message: "No movies found matching your search" });
+
+    res.json(matchingMovies);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get one movie by title
+router.get("/:name/movies/:title", async (req, res) => {
+  try {
+    const list = await List.findOne({ name: req.params.name });
+    if (!list) return res.status(404).json({ error: "List not found" });
+
+    const movie = list.movies.find(
+      (m) => m.title.toLowerCase() === req.params.title.toLowerCase()
+    );
+    if (!movie)
+      return res.status(404).json({ error: "Movie not found in this list" });
+
+    res.json(movie);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get all movies in a list
+router.get("/:name/movies", async (req, res) => {
+  try {
+    const list = await List.findOne({ name: req.params.name });
+    if (!list) return res.status(404).json({ error: "List not found" });
+    res.json(list.movies);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Add a movie to a list
+router.post("/:name/movies", async (req, res) => {
+  try {
+    const list = await List.findOne({ name: req.params.name });
+    if (!list) return res.status(404).json({ error: "List not found" });
+
+    const { title, description, image } = req.body;
+    if (!title || !description || !image) {
+      return res.status(400).json({ error: "All movie fields are required" });
+    }
+
+    const movie = { title, description, image };
+
+    list.movies.push(movie);
+    await list.save();
+
+    res.status(201).json(movie);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+module.exports = router;

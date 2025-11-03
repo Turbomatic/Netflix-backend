@@ -1,27 +1,7 @@
 const express = require("express");
-const mongoose = require("mongoose");
+const List = require("../models/listModel"); // import List model
 
 const router = express.Router();
-
-// Connect to local Mongo
-mongoose
-  .connect("mongodb://127.0.0.1:27017/Netflix")
-  .then(() => console.log("Connected to Netflix database"))
-  .catch((err) => console.error("MongoDB connection error:", err));
-
-// --- Schema ---
-const movieSchema = new mongoose.Schema({
-  title: String,
-  description: String,
-  image: String,
-});
-
-const listSchema = new mongoose.Schema({
-  name: String,
-  movies: [movieSchema],
-});
-
-const List = mongoose.model("List", listSchema, "List");
 
 // Create a list (ex: Trending Now)
 router.post("/", async (req, res) => {
@@ -41,6 +21,21 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const lists = await List.find();
+    res.json(lists);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Search lists (not casensy)
+router.get("/search/:query", async (req, res) => {
+  try {
+    const query = req.params.query;
+    const lists = await List.find({
+      name: { $regex: query, $options: "i" },
+    });
+    if (lists.length === 0)
+      return res.status(404).json({ message: "No lists found matching your search" });
     res.json(lists);
   } catch (err) {
     res.status(500).json({ error: err.message });

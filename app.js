@@ -10,6 +10,7 @@ var usersRouter = require('./routes/users');
 var browseRouter = require('./routes/browse');
 var subscribeRouter = require('./routes/subscribe');
 var listsRouter = require('./routes/lists');
+var moviesRouter = require('./routes/movies');
 
 var app = express();
 
@@ -28,6 +29,7 @@ app.use('/users', usersRouter);
 app.use('/profile', profileRouter);
 app.use('/browse', browseRouter);
 app.use('/subscribe', subscribeRouter);
+app.use('/lists', moviesRouter); //cuz movies is nested in the lists
 app.use('/lists', listsRouter);
 
 // catch 404 and forward to error handler
