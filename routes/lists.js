@@ -17,16 +17,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Get all lists
-router.get("/", async (req, res) => {
-  try {
-    const lists = await List.find();
-    res.json(lists);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // Search lists (not casensy)
 router.get("/search/:query", async (req, res) => {
   try {
@@ -53,4 +43,13 @@ router.get("/:name", async (req, res) => {
   }
 });
 
+// Get all lists
+router.get("/", async (req, res) => {
+  try {
+    const lists = await List.find();
+    res.json(lists);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;
