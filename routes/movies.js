@@ -3,17 +3,15 @@ const List = require("../models/listModel"); // import List
 
 const router = express.Router();
 
-// Search movies by title (case-insensitive, across all lists)
+// Search movies by title (not casensy)
 router.get("/movies/search/:query", async (req, res) => {
   try {
     const query = req.params.query;
 
-    // Find all lists that have at least one movie matching the query
     const lists = await List.find({
-      "movies.title": { $regex: query, $options: "i" } // i = case-insensitive
+      "movies.title": { $regex: query, $options: "i" }
     });
 
-    // Collect all matching movies
     const matchingMovies = [];
     lists.forEach(list => {
       list.movies.forEach(movie => {
